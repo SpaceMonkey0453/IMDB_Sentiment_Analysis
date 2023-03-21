@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ movie_title|title }} Sentiment Analysis</title>
+  <style>
+    /* Style for the progress bar */
+    .progress-container {
+      width: 400px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .progress {
+      background-color: #E0E0E0;
+      height: 30px;
+      width: 100%;
+      border-radius: 5px;
+      overflow: hidden;
+      display: inline-block;
+      margin-right: 20px;
+    }
+    
+    .imdb-bar {
+      background: linear-gradient(to right, #FF0000, #00FF00);
+      height: 100%;
+      width: {{ sentiment_scores.imdb * 100|round(2)  }}%;
+      text-align: center;
+      line-height: 30px;
+      color: black;
+    }
+    
+    .metacritic-bar {
+      background: linear-gradient(to right, #FF0000, #00FF00);
+      height: 100%;
+      width: {{ sentiment_scores.metacritic * 100|round(2)  }}%;
+      text-align: center;
+      line-height: 30px;
+      color: black;
+    }
+    
+    .bar-header {
+      font-size: 20px;
+      text-align: left;
+      margin-bottom: 5px;
+	color: white;
+    }
+  </style>
+</head>
+<body style="background-color: #1a1a1a; color: white; text-align: center;">
+    <h1>{{ movie_title|title }} Sentiment Scores</h1>
+    <div class="progress-container">
+      <div>
+        <div class="bar-header">IMDb</div>
+        <div class="progress">
+          <div class="imdb-bar">{{ sentiment_scores.imdb*100|round(2) }}%</div>
+        </div>
+      </div>
+      <div>
+        <div class="bar-header">Metacritic</div>
+        <div class="progress">
+          <div class="metacritic-bar">{{ sentiment_scores.metacritic*100|round(2) }}%</div>
+        </div>
+      </div>
+    </div>
+    <a href="/" style="color: white;">Go back</a>
+</body>
+</html>
