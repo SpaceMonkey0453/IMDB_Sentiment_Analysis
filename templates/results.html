@@ -41,7 +41,22 @@
       font-size: 20px;
       text-align: left;
       margin-bottom: 5px;
-	color: white;
+      color: white;
+    }
+
+    /* Style for review boxes */
+    .review-box {
+      width: 400px;
+      margin: 20px auto;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 18px;
+    }
+    .positive {
+      border: 2px solid green;
+    }
+    .negative {
+      border: 2px solid red;
     }
   </style>
 </head>
@@ -60,6 +75,14 @@
           <div class="metacritic-bar">{{ sentiment_scores.metacritic*100|round(2) }}%</div>
         </div>
       </div>
+    </div>
+    <div class="review-box positive">
+      <h2>Positive Review:</h2>
+      <p>{{ sentiment_scores.positive_review }}</p>
+    </div>
+    <div class="review-box negative">
+      <h2>Negative Review:</h2>
+      <p>{{ sentiment_scores.negative_review }}</p>
     </div>
     <a href="/" style="color: white;">Go back</a>
 </body>

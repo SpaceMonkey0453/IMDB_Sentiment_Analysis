@@ -1,6 +1,7 @@
 import re
 import nltk
 import pandas as pd
+import pickle
 from nltk.corpus import stopwords, words
 from nltk.stem.wordnet import WordNetLemmatizer as wnl
 from nltk.stem import SnowballStemmer
@@ -37,15 +38,12 @@ def lemmatize_sentence(sentence, word_list, stop_words):
     lemmatizer = SnowballStemmer(language='english')
     
     # Tokenize the sentence and get the part of speech tag for each token
-    tagged = nltk.pos_tag(nltk.word_tokenize(sentence.lower()))
-    
-    # Convert the part of speech tags to WordNet format
-    wordnet_tagged = [(word, get_wordnet_pos(pos)) for (word, pos) in tagged]
+    tagged = nltk.word_tokenize(sentence.lower())
     
     # Lemmatize each valid token in the sentence and remove stop words and non-valid words
     lemmatized_sentence = [
         lemmatizer.stem(token)
-        for token, pos in wordnet_tagged
+        for token in tagged
         if token.lower() in word_list and token.lower() not in stop_words
     ]
     
@@ -56,13 +54,8 @@ def apply_lemmatization(df):
     # Apply the lemmatize_sentence function to the 'review' column of the DataFrame
     return df['review'].apply(lambda x: lemmatize_sentence(x, word_list, stop_words))
 
-def preprocess(df):
+def preprocess(df, tokenizer_path='tokenizer.pickle'):
     df['review'] = df['review'].apply(replace_non_ascii)
     df['review'] = df['review'].apply(clean_str)
     lemmatized_reviews = apply_lemmatization(df)
-    lemmatized_reviews_df = pd.DataFrame({'review': lemmatized_reviews})
-    tokenizer = Tokenizer(num_words=max_words)
-    tokenizer.fit_on_texts(lemmatized_reviews_df['review'])
-    sequences = tokenizer.texts_to_sequences(lemmatized_reviews_df['review'])
-    padded_sequences = pad_sequences(sequences, maxlen=maxlen)
-    return padded_sequences
+    return lemmatized_reviews

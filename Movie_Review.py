@@ -12,18 +12,9 @@ from nltk.stem.wordnet import WordNetLemmatizer as wnl
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import logging
+import random
 
 app = Flask(__name__)
-
-# Create a file handler that writes logs to a file
-file_handler = logging.FileHandler('app.log')
-
-# Configure the file handler's log level and format
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
-
-# Add the file handler to the root logger
-logging.root.addHandler(file_handler)
 
 imdb_reviews = []
 
@@ -125,7 +116,6 @@ def analyze_movie_sentiment(movie_title):
     if not imdb_reviews_df.empty:
         # Preprocess the IMDb reviews
         imdb_reviews_preprocessed = preprocess(imdb_reviews_df)
-        print(f"Preprocessed {len(imdb_reviews_preprocessed)} IMDb reviews")
         # Use the model to predict sentiment scores
         imdb_probabilities = model.predict(imdb_reviews_preprocessed)
         # Count the number of positive predictions
@@ -139,22 +129,29 @@ def analyze_movie_sentiment(movie_title):
     if not metacritic_reviews_df.empty:
         # Preprocess the Metacritic reviews
         metacritic_reviews_preprocessed = preprocess(metacritic_reviews_df)
-        print(f"Preprocessed {len(metacritic_reviews_preprocessed)} Metacritic reviews")
         # Use the model to predict sentiment scores
         metacritic_probabilities = model.predict(metacritic_reviews_preprocessed)
-        # Count the number of positive predictions
-        metacritic_positive_count = (metacritic_probabilities).sum()
+        # Get the indices of the positive and negative reviews
+        positive_indices = [i for i in range(len(metacritic_probabilities)) if metacritic_probabilities[i] > 0.5]
+        negative_indices = [i for i in range(len(metacritic_probabilities)) if metacritic_probabilities[i] <= 0.5]
+        # Choose a random positive and negative review
+        positive_review = metacritic_reviews_df.iloc[random.choice(positive_indices)]['review']
+        negative_review = metacritic_reviews_df.iloc[random.choice(negative_indices)]['review']
         # Calculate the sentiment score
-        metacritic_sentiment_score = metacritic_positive_count / len(metacritic_probabilities)
+        metacritic_sentiment_score = len(positive_indices) / (len(positive_indices) + len(negative_indices))
     else:
         # Return 0 as the score if the dataframe is empty
         metacritic_sentiment_score = 0
+        positive_review = ""
+        negative_review = ""
 
     return {
-        # "twitter": twitter_avg_score,
         "imdb": imdb_sentiment_score,
         "metacritic": metacritic_sentiment_score,
+        "positive_review": positive_review,
+        "negative_review": negative_review
     }
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -162,6 +159,7 @@ def index():
         movie_title = request.form["movie_title"]
         print(f"Movie title submitted: {movie_title}")
         sentiment_scores = analyze_movie_sentiment(movie_title)
+        print(sentiment_scores)  # Add this line to print the sentiment_scores dictionary
         return render_template("results.html", movie_title=movie_title, sentiment_scores=sentiment_scores)
     print("Rendering index.html")
     return render_template("index.html")
