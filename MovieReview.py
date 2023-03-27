@@ -5,25 +5,7 @@ import requests
 from imdb import IMDb
 from bs4 import BeautifulSoup
 from preprocessing import preprocess
-import re
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem.wordnet import WordNetLemmatizer as wnl
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-import logging
-import random
 
-
-# Create a file handler that writes logs to a file
-file_handler = logging.FileHandler('app.log')
-
-# Configure the file handler's log level and format
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
-
-# Add the file handler to the root logger
-logging.root.addHandler(file_handler)
 
 imdb_reviews = []
 
@@ -173,15 +155,18 @@ def index():
                 st.write(f"Sentiment analysis for {movie_title.title()}:")
                 
                 imdb_score = f"{sentiment_scores['imdb']*100:.2f}%"
-                imdb_score_dial = st.progress(imdb_score / 100)
-                metacritic_score = f"{sentiment_scores['metacritic']*100:.2f}%"
-                metacritic_score_dial = st.progress(metacritic_score / 100)
+                imdb_score_str = f"IMDb Score: {imdb_score}"
+                imdb_score_dial = st.progress(sentiment_scores['imdb'], text = 'IMDb Score: '+ imdb_score)
                 
-                st.write("Positive review:")
+                metacritic_score = f"{sentiment_scores['metacritic']*100:.2f}%"
+                metacritic_score_str = f"Metacritic Score: {metacritic_score}"
+                metacritic_score_dial = st.progress(sentiment_scores['metacritic'], text = 'Metacritic Score: '+ metacritic_score)
+                
+                st.subheader("Positive review:")
                 st.success(sentiment_scores['positive_review'])
                 
-                st.write("Negative review:")
-                st.warning(sentiment_scores['negative_review'])
+                st.subheader("Negative review:")
+                st.error(sentiment_scores['negative_review'])
 
 
 
