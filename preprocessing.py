@@ -1,11 +1,8 @@
 import re
 import nltk
-import pandas as pd
 import pickle
 from nltk.corpus import stopwords, words
-from nltk.stem.wordnet import WordNetLemmatizer as wnl
 from nltk.stem import SnowballStemmer
-from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
 
@@ -50,20 +47,25 @@ def apply_lemmatization(df):
     # Apply the lemmatize_sentence function to the 'review' column of the DataFrame
     return df['review'].apply(lambda x: lemmatize_sentence(x, word_list, stop_words))
 
-def preprocess(df, tokenizer_path='tokenizer.pickle', max_len=500):
+# Define a function to preprocess the reviews
+def preprocess(reviews, tokenizer_path='tokenizer.pickle', max_len=500):
     # Load the saved tokenizer
     with open(tokenizer_path, 'rb') as handle:
         tokenizer = pickle.load(handle)
-    
+
     # Preprocess the text
-    df['review'] = df['review'].apply(replace_non_ascii_regex)
-    df['review'] = df['review'].apply(clean_str)
-    lemmatized_reviews = apply_lemmatization(df)
-    
-    # Convert text to sequences of tokens
-    sequences = tokenizer.texts_to_sequences(lemmatized_reviews)
-    
+    preprocessed_reviews = []
+    for review in reviews:
+        review = replace_non_ascii_regex(review)
+        review = clean_str(review)
+        preprocessed_reviews.append(review)
+
+    # Convert text to sequences of tokens using the loaded tokenizer
+    sequences = tokenizer.texts_to_sequences(preprocessed_reviews)
+
     # Pad the sequences to a fixed length
     padded_sequences = pad_sequences(sequences, maxlen=max_len)
-    
+
     return padded_sequences
+
+
