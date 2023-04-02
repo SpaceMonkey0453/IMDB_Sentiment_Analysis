@@ -27,7 +27,8 @@ The model consists of the following layers:
 We trained the model using the best parameters obtained from a RandomizedSearchCV. The model achieved a test accuracy of 99.83% and a test AUC score of 0.9999, indicating that it can accurately predict the sentiment of movie reviews. By using this model, movie companies can get a more nuanced understanding of how people feel about movies, based on the actual text of their reviews rather than just their rating scores.
 
 ![Learning Curve](Images/Learning_Curve.png)
-![Confusion Matrix](images/Confusion_Matrix.png)
+
+![Confusion Matrix](Images/Confusion_Matrix.png)
 ## Streamlit App
 
 The Streamlit app allows you to enter a movie title, and it will scrape fresh reviews from IMDb and Metacritic to find the scores for the movie, the top positive and negative review, and a word cloud for each the positive and negative reviews.
