@@ -5,6 +5,8 @@ import requests
 from imdb import IMDb
 from bs4 import BeautifulSoup
 from preprocessing import preprocess
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
 
 imdb_reviews = []
@@ -42,7 +44,7 @@ def analyze_movie_sentiment(movie_title):
         imdb_reviews = []
         print("Movie not found on IMDb")
 
-    def get_metacritic_reviews(movie_title, max_pages=2):
+    def get_metacritic_reviews(movie_title, max_pages=4):
         # Replace spaces with '-' and convert to lowercase
         formatted_movie_title = movie_title.replace(" ", "-").lower()
 
@@ -91,6 +93,12 @@ def analyze_movie_sentiment(movie_title):
         metacritic_reviews_df = pd.DataFrame(data)
         return metacritic_reviews_df
     
+    def generate_wordcloud(reviews):
+        text = " ".join(review for review in reviews)
+        wordcloud = WordCloud(width=800, height=800, background_color="black", stopwords=None, contour_width=3, contour_color="steelblue").generate(text)
+
+        return wordcloud
+    
     data = {"review": imdb_reviews}
     imdb_reviews_df = pd.DataFrame(data)
 
@@ -109,6 +117,16 @@ def analyze_movie_sentiment(movie_title):
     # twitter_scores = model.predict(twitter_reviews_preprocessed)
     imdb_probabilities = model.predict(imdb_reviews_preprocessed)
     metacritic_probabilities = model.predict(metacritic_reviews_preprocessed)
+
+    # Filter negative Metacritic reviews (with a sentiment score of 0.5 or less)
+    negative_metacritic_reviews = [review for review, prob in zip(metacritic_reviews_df['review'], metacritic_probabilities) if prob <= 0.5]
+    positive_metacritic_reviews = [review for review, prob in zip(metacritic_reviews_df['review'], metacritic_probabilities) if prob > 0.5]
+
+    # Generate word cloud for negative Metacritic reviews
+    metacritic_negative_wordcloud = generate_wordcloud(negative_metacritic_reviews)
+
+    # Generate word cloud for negative Metacritic reviews
+    metacritic_positive_wordcloud = generate_wordcloud(positive_metacritic_reviews)
 
     # Sort probabilities in descending order
     metacritic_sorted_indices = sorted(range(len(metacritic_probabilities)), key=lambda k: metacritic_probabilities[k], reverse=True)
@@ -135,17 +153,20 @@ def analyze_movie_sentiment(movie_title):
     # Calculate the sentiment score
     imdb_sentiment_score = imdb_positive_count / len(imdb_probabilities)
 
+    # Modify the return statement to include the negative Metacritic word cloud
     return {
         "imdb": imdb_sentiment_score,
         "metacritic": metacritic_sentiment_score,
         "positive_review": positive_review,
-        "negative_review": negative_review
+        "negative_review": negative_review,
+        "metacritic_negative_wordcloud": metacritic_negative_wordcloud,
+        "metacritic_positive_wordcloud": metacritic_positive_wordcloud
     }
 
 def index():
     st.title("Movie Review Sentiment Analysis")
     movie_title = st.text_input("Enter a movie title")
-    
+
     if st.button("Analyze Sentiment"):
         if not movie_title:
             st.error("Please enter a movie title")
@@ -153,6 +174,7 @@ def index():
             with st.spinner("Analyzing..."):
                 sentiment_scores = analyze_movie_sentiment(movie_title)
                 st.write(f"Sentiment analysis for {movie_title.title()}:")
+
                 
                 imdb_score = f"{sentiment_scores['imdb']*100:.2f}%"
                 imdb_score_str = f"IMDb Score: {imdb_score}"
@@ -167,6 +189,12 @@ def index():
                 
                 st.subheader("Negative review:")
                 st.error(sentiment_scores['negative_review'])
+
+                st.subheader("Word Cloud for Positive Metacritic Reviews:")
+                st.image(sentiment_scores["metacritic_positive_wordcloud"].to_array(), use_column_width=True)
+
+                st.subheader("Word Cloud for Negative Metacritic Reviews:")
+                st.image(sentiment_scores["metacritic_negative_wordcloud"].to_array(), use_column_width=True)
 
 
 
